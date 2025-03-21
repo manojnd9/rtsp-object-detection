@@ -13,3 +13,14 @@ poetry.lock
 
 # Environments
 .venv
+
+# Torch files
+*.pt
+
+# Movies and videos
+**/data/*
+*.jpg
+*.MOV
+*.mp4
+*.png
+
