@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "object_detection"
+version = "0.0.1"
+description = "Detect objects via data stream using yolo object model"
+authors = ["Manoj Deshpande <manojnd9@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
