@@ -1,6 +1,8 @@
 import cv2 as cv
 
-STREAM_URL = "video_test.MOV"
+STREAM_URL = "rtsp://192.168.2.87:8080/h264_ulaw.sdp"
+# STREAM_URL = "rtsp://127.0.0.1:8555/downscaled"
+# STREAM_URL = "video_test.MOV"
 
 # Capture object
 cap = cv.VideoCapture(STREAM_URL)
@@ -12,12 +14,11 @@ while cap.isOpened():
     # Capture each frame
     retval, frame = cap.read()
     # return is true if there is frame/image read
-    if retval:
-        cv.imshow("Frame", frame)
-        cv.waitKey(1)
-        if 0xFF == ord("q"):
-            break
-    else:
+    if not retval:
+        break
+    cv.imshow("Frame", frame)
+    cv.waitKey(1)
+    if 0xFF == ord("q"):
         break
 
 # Release video capture object
