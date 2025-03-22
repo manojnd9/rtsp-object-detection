@@ -5,6 +5,8 @@ from object_detection.backend.config import MiscConfig, ModelSelector
 from object_detection.backend.object_models.model import ObjectDetector
 from object_detection.backend.rtsp.video_stream import video_stream_process
 from object_detection.backend.utils.utils import get_stream_session
+from object_detection.backend.database.data_model import Base
+from object_detection.backend.database.data_engine import engine
 
 
 def main():
@@ -24,6 +26,9 @@ def main():
     stream_session = get_stream_session()
 
     misc_config = MiscConfig()
+
+    # Check and set up db tables
+    Base.metadata.create_all(bind=engine)
 
     # Call video stream process function
     video_stream_process(
