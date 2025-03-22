@@ -2,7 +2,7 @@
 
 Detect objects in real time using RTSP (Real-Time Streaming Protocol) and object detection model.
 
-## Tech Stack
+## Tech Stack Choices
 
 1. Backend is built on Python 3.11 [older versions are generally not recommended and py>3.12 don't have much updates in the supporting libraries]
 2. OpenCV: Widely used computer vision library for video streaming and image processing. It is also fast and optimised for real-time applications.
@@ -19,3 +19,20 @@ Detect objects in real time using RTSP (Real-Time Streaming Protocol) and object
 For the security purpose, `RTSP_STREAM_URL` is defined in `.env` file and loaded in the `main.py`.
 
 Object model configuration can be added/modified in the `ModelSelector` dataclass and used in the `ObjectDetector` wrapper.
+
+## Data Schema
+
+1. `StreamSesssion` \
+   Global session schema to help partion the way frames and detection results are stored.
+2. `BoundingBox` and `DetectionResult` \
+   Each detected object as a box has:
+   - `timestamp`: at which the object was detected
+   - `label`: name of of the object
+   - `confidence`: confidence of detected objected by the model
+   - `bbox`: bounding box coordinates
+   - `frame_path`: path where input frame is stored
+3. Storing streamed frames \
+   - Save the running frame along with the timestamp within file name
+     as jpg file. For now, the frames are stored in the local disk, for later it can be pushed to s3 buckets with proper partitioning.
+   - Year, Month, Day and Session_ID is used to partion the folders to
+     store the frames. It makes querying certain session data very fast.
