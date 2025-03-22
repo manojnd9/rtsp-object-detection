@@ -4,7 +4,7 @@ import os
 from object_detection.backend.config import MiscConfig, ModelSelector
 from object_detection.backend.object_models.model import ObjectDetector
 from object_detection.backend.rtsp.video_stream import video_stream_process
-from object_detection.backend.utils.utils import get_session_id
+from object_detection.backend.utils.utils import get_stream_session
 
 
 def main():
@@ -21,7 +21,7 @@ def main():
     detector = ObjectDetector(model=model.model, model_path=model.path)
 
     # Define current session_id
-    stream_session = get_session_id()
+    stream_session = get_stream_session()
 
     misc_config = MiscConfig()
 

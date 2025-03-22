@@ -33,7 +33,7 @@ def save_frame(
     return f_path
 
 
-def get_session_id() -> StreamSession:
+def get_stream_session() -> StreamSession:
     """
     Based on current timestamp and session schema
     generate and return session schema object.
