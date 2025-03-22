@@ -12,13 +12,19 @@ from object_detection.backend.utils.save_frame import save_frame
 
 
 def video_stream_process(
-    stream_url: str, stream_session: StreamSession, object_detector: ObjectDetector
+    stream_url: str,
+    stream_session: StreamSession,
+    object_detector: ObjectDetector,
+    sampling_rate: int = 30,
 ) -> None:
     # Object Detector
     detector = object_detector
 
     # Capture object
     cap = cv.VideoCapture(stream_url)
+
+    # frame counter with sampling
+    frame_counter = 0
 
     if not cap.isOpened():
         raise ValueError("No stream or video available")
@@ -29,6 +35,12 @@ def video_stream_process(
         # return is true if there is frame/image read
         if not retval:
             break
+
+        # Sampling
+        frame_counter += 1
+        if frame_counter % sampling_rate != 0:
+            continue
+
         # Call the object model detecting function
         results = detector.detect(frame=frame)
 

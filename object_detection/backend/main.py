@@ -23,9 +23,15 @@ def main():
     # Define current session_id
     stream_session = get_session_id()
 
+    # Sampling rate
+    sampling_rate = 3
+
     # Call video stream process function
     video_stream_process(
-        stream_url=stream_url, stream_session=stream_session, object_detector=detector
+        stream_url=stream_url,
+        stream_session=stream_session,
+        object_detector=detector,
+        sampling_rate=sampling_rate,
     )
 
 
