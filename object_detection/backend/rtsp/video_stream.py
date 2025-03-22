@@ -4,6 +4,7 @@ from ultralytics import YOLO
 
 from object_detection.backend.database.schema import BoundingBox, DetectionResult
 from object_detection.backend.object_models.model import Model, ObjectDetector
+from object_detection.backend.utils.save_frame import save_frame
 
 
 def video_stream_process(stream_url: str, object_detector: ObjectDetector) -> None:
@@ -31,6 +32,10 @@ def video_stream_process(stream_url: str, object_detector: ObjectDetector) -> No
         # Process each box detected
         boxes = result.boxes.cpu().numpy()
 
+        # Store frame
+        timestamp = datetime.now(timezone.utc)
+        frame_path = save_frame(timestamp, frame)
+
         for box in boxes:
             bbox = BoundingBox(
                 x1=float(box.xyxy[0][0]),
@@ -39,11 +44,11 @@ def video_stream_process(stream_url: str, object_detector: ObjectDetector) -> No
                 y2=float(box.xyxy[0][3]),
             )
             detection_data = DetectionResult(
-                timestamp=datetime.now(timezone.utc),
+                timestamp=timestamp,
                 label=detector.model.names[int(box.cls)],
                 confidence=float(box.conf[0]),
                 bbox=bbox,
-                frame_path="",
+                frame_path=str(frame_path),
             )
         # for xyxy in xyxys:
         #     cv.rectangle(
