@@ -1,11 +1,15 @@
 import cv2 as cv
+from ultralytics import YOLO
 
-from object_detection.backend.object_models.model import Model
+from object_detection.backend.object_models.model import Model, ObjectDetector
 
-STREAM_URL = "rtsp://192.168.2.87:8080/h264_ulaw.sdp"
+# STREAM_URL = "rtsp://192.168.2.87:8080/h264_ulaw.sdp"
 # STREAM_URL = "rtsp://127.0.0.1:8555/downscaled"
-# STREAM_URL = "video_test.MOV"
+STREAM_URL = "video_test.MOV"
 # STREAM_URL = "simple-car.jpg"
+
+# Object Detector
+detector = ObjectDetector(model=YOLO, model_path="yolov8n.pt")
 
 # Capture object
 cap = cv.VideoCapture(STREAM_URL)
@@ -19,7 +23,8 @@ while cap.isOpened():
     # return is true if there is frame/image read
     if not retval:
         break
-    results = Model(frame)
+    results = detector.detect(frame=frame)
+
     for result in results:
         result.show()
     break
