@@ -23,9 +23,17 @@ def video_stream_process(stream_url: str, object_detector: ObjectDetector) -> No
         results = detector.detect(frame=frame)
 
         for result in results:
-            result.show()
-        break
-        cv.imshow("Frame", frame)
+            boxes = result.boxes.cpu().numpy()
+            xyxys = boxes.xyxy
+
+            for xyxy in xyxys:
+                cv.rectangle(
+                    frame,
+                    (int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])),
+                    (0, 255, 0),
+                )
+        # break
+        cv.imshow("Frame", results[0].plot())
         cv.waitKey(1)
         if 0xFF == ord("q"):
             break
