@@ -1,0 +1,23 @@
+[tool.poetry]
+name = "object_detection"
+version = "0.0.1"
+description = "Detect objects via data stream using yolo object model"
+authors = ["Manoj Deshpande <manojnd9@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.11"
+opencv-python = "^4.11.0.86"
+torch = "2.1.2"
+torchvision = "0.16.2"
+ultralytics = "^8.3.94"
+numpy = "1.26.4"
+pydantic = "^2.10.6"
+
+[tool.poetry.group.dev.dependencies]
+black = "^25.1.0"
+python-dotenv = "^1.0.1"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
