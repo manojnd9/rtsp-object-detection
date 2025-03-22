@@ -12,6 +12,7 @@ torch = "2.1.2"
 torchvision = "0.16.2"
 ultralytics = "^8.3.94"
 numpy = "1.26.4"
+pydantic = "^2.10.6"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"

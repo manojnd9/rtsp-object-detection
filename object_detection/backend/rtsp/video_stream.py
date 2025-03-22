@@ -1,6 +1,8 @@
+from datetime import datetime, timezone
 import cv2 as cv
 from ultralytics import YOLO
 
+from object_detection.backend.database.schema import BoundingBox, DetectionResult
 from object_detection.backend.object_models.model import Model, ObjectDetector
 
 
@@ -20,18 +22,35 @@ def video_stream_process(stream_url: str, object_detector: ObjectDetector) -> No
         # return is true if there is frame/image read
         if not retval:
             break
+        # Call the object model detecting function
         results = detector.detect(frame=frame)
 
-        for result in results:
-            boxes = result.boxes.cpu().numpy()
-            xyxys = boxes.xyxy
+        # Since in each call one image/frame is processed
+        result = results[0]
 
-            for xyxy in xyxys:
-                cv.rectangle(
-                    frame,
-                    (int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])),
-                    (0, 255, 0),
-                )
+        # Process each box detected
+        boxes = result.boxes.cpu().numpy()
+
+        for box in boxes:
+            bbox = BoundingBox(
+                x1=float(box.xyxy[0][0]),
+                y1=float(box.xyxy[0][1]),
+                x2=float(box.xyxy[0][2]),
+                y2=float(box.xyxy[0][3]),
+            )
+            detection_data = DetectionResult(
+                timestamp=datetime.now(timezone.utc),
+                label=detector.model.names[int(box.cls)],
+                confidence=float(box.conf[0]),
+                bbox=bbox,
+                frame_path="",
+            )
+        # for xyxy in xyxys:
+        #     cv.rectangle(
+        #         frame,
+        #         (int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])),
+        #         (0, 255, 0),
+        #     )
         # break
         cv.imshow("Frame", results[0].plot())
         cv.waitKey(1)
