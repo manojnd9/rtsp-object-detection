@@ -2,12 +2,18 @@ from datetime import datetime, timezone
 import cv2 as cv
 from ultralytics import YOLO
 
-from object_detection.backend.database.schema import BoundingBox, DetectionResult
+from object_detection.backend.database.schema import (
+    BoundingBox,
+    DetectionResult,
+    StreamSession,
+)
 from object_detection.backend.object_models.model import Model, ObjectDetector
 from object_detection.backend.utils.save_frame import save_frame
 
 
-def video_stream_process(stream_url: str, object_detector: ObjectDetector) -> None:
+def video_stream_process(
+    stream_url: str, stream_session: StreamSession, object_detector: ObjectDetector
+) -> None:
     # Object Detector
     detector = object_detector
 
@@ -34,7 +40,7 @@ def video_stream_process(stream_url: str, object_detector: ObjectDetector) -> No
 
         # Store frame
         timestamp = datetime.now(timezone.utc)
-        frame_path = save_frame(timestamp, frame)
+        frame_path = save_frame(stream_session, timestamp, frame)
 
         for box in boxes:
             bbox = BoundingBox(

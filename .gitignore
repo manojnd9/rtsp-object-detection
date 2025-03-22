@@ -25,3 +25,5 @@ poetry.lock
 *.mp4
 *.png
 
+
+**/.DS_Store
