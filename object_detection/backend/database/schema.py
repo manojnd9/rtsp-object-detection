@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from uuid import UUID
 
 
 class BoundingBox(BaseModel):
@@ -35,4 +36,4 @@ class StreamSession(BaseModel):
     year: str
     month: str
     day: str
-    session_id: str
+    session_id: UUID

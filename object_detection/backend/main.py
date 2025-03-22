@@ -4,7 +4,7 @@ import os
 from object_detection.backend.config import MiscConfig, ModelSelector
 from object_detection.backend.object_models.model import ObjectDetector
 from object_detection.backend.rtsp.video_stream import video_stream_process
-from object_detection.backend.utils.save_frame import get_session_id
+from object_detection.backend.utils.utils import get_session_id
 
 
 def main():

@@ -8,7 +8,7 @@ from object_detection.backend.database.schema import (
     StreamSession,
 )
 from object_detection.backend.object_models.model import Model, ObjectDetector
-from object_detection.backend.utils.save_frame import save_frame
+from object_detection.backend.utils.utils import save_frame
 
 
 def video_stream_process(
