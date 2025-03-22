@@ -15,6 +15,7 @@ numpy = "1.26.4"
 
 [tool.poetry.group.dev.dependencies]
 black = "^25.1.0"
+python-dotenv = "^1.0.1"
 
 [build-system]
 requires = ["poetry-core"]
