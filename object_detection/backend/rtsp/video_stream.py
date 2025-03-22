@@ -16,6 +16,7 @@ def video_stream_process(
     stream_session: StreamSession,
     object_detector: ObjectDetector,
     sampling_rate: int = 30,
+    viz: bool = False,
 ) -> None:
     # Object Detector
     detector = object_detector
@@ -68,17 +69,12 @@ def video_stream_process(
                 bbox=bbox,
                 frame_path=str(frame_path),
             )
-        # for xyxy in xyxys:
-        #     cv.rectangle(
-        #         frame,
-        #         (int(xyxy[0]), int(xyxy[1]), int(xyxy[2]), int(xyxy[3])),
-        #         (0, 255, 0),
-        #     )
-        # break
-        cv.imshow("Frame", results[0].plot())
-        cv.waitKey(1)
-        if 0xFF == ord("q"):
-            break
+
+        if viz:
+            cv.imshow("Frame", results[0].plot())
+            cv.waitKey(1)
+            if 0xFF == ord("q"):
+                break
 
     # Release video capture object
     cap.release()
