@@ -19,9 +19,9 @@ def save_frame(
     f_name = f"frame_{timestamp.strftime('%Y%m%d_%H%M%S_%f')}.jpg"
     f_dir = Path(
         "./object_detection/backend/data/streamed_data",
-        stream_session.year,
-        stream_session.month,
-        stream_session.day,
+        str(stream_session.year),
+        str(stream_session.month),
+        str(stream_session.day),
         str(stream_session.session_id),
     )
     f_path = Path(f_dir, f_name)
@@ -41,8 +41,8 @@ def get_stream_session() -> StreamSession:
     timestamp = datetime.now(timezone.utc)
 
     return StreamSession(
-        year=f"{timestamp.strftime('%Y')}",
-        month=f"{timestamp.strftime('%m')}",
-        day=f"{timestamp.strftime('%d')}",
+        year=int(f"{timestamp.strftime('%Y')}"),
+        month=int(f"{timestamp.strftime('%m')}"),
+        day=int(f"{timestamp.strftime('%d')}"),
         session_id=uuid4(),
     )

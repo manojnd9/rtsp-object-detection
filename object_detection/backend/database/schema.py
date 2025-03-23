@@ -33,7 +33,7 @@ class StreamSession(BaseModel):
     way frames and detection results are stored.
     """
 
-    year: str
-    month: str
-    day: str
+    year: int
+    month: int
+    day: int
     session_id: UUID

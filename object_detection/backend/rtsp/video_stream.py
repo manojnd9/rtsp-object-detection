@@ -2,6 +2,7 @@ from datetime import datetime, timezone
 import cv2 as cv
 from ultralytics import YOLO
 
+from object_detection.backend.database.data_store import store_stream_session
 from object_detection.backend.database.schema import (
     BoundingBox,
     DetectionResult,
@@ -30,6 +31,11 @@ def video_stream_process(
     if not cap.isOpened():
         raise ValueError("No stream or video available")
 
+    # With a valid stream -> store the stream session data into database
+
+    store_stream_session(stream_session)
+
+    # Process frame one after another
     while cap.isOpened():
         # Capture each frame
         retval, frame = cap.read()
