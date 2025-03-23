@@ -8,3 +8,11 @@ format:
 # Format Check
 format_check:
 	cd ${BACKEND_REPO} && poetry run black --check .
+
+
+# Database set-up
+db:
+	cd ${BACKEND_REPO} && docker-compose up -d
+
+db_down:
+	cd ${BACKEND_REPO} && docker-compose down

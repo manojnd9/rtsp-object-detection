@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from datetime import datetime
+from uuid import UUID
 
 
 class BoundingBox(BaseModel):
@@ -25,6 +26,7 @@ class DetectionResult(BaseModel):
     confidence: float
     bbox: BoundingBox
     frame_path: str
+    session_id: UUID
 
 
 class StreamSession(BaseModel):
@@ -32,7 +34,7 @@ class StreamSession(BaseModel):
     way frames and detection results are stored.
     """
 
-    year: str
-    month: str
-    day: str
-    session_id: str
+    year: int
+    month: int
+    day: int
+    session_id: UUID
