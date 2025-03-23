@@ -26,6 +26,7 @@ class DetectionResult(BaseModel):
     confidence: float
     bbox: BoundingBox
     frame_path: str
+    session_id: UUID
 
 
 class StreamSession(BaseModel):

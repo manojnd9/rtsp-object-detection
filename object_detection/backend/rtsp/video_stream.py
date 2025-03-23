@@ -2,7 +2,10 @@ from datetime import datetime, timezone
 import cv2 as cv
 from ultralytics import YOLO
 
-from object_detection.backend.database.data_store import store_stream_session
+from object_detection.backend.database.data_store import (
+    store_object_detection_result,
+    store_stream_session,
+)
 from object_detection.backend.database.schema import (
     BoundingBox,
     DetectionResult,
@@ -74,7 +77,10 @@ def video_stream_process(
                 confidence=float(box.conf[0]),
                 bbox=bbox,
                 frame_path=str(frame_path),
+                session_id=stream_session.session_id,
             )
+            # Store detection result into database
+            store_object_detection_result(detection_data)
 
         if viz:
             cv.imshow("Frame", results[0].plot())

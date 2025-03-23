@@ -12,7 +12,7 @@ if not database_url:
     raise ValueError("DATABASE_URL missing in environment")
 
 
-engine = create_engine(database_url, echo=True)
+engine = create_engine(database_url, echo=False)
 """Engine to connect the database session.
 """
 
