@@ -40,3 +40,7 @@ Object model configuration can be added/modified in the `ModelSelector` dataclas
 ## Database
 
 PostgreSQL along with SQLAlchemy is used to manage the database storing and database sessions. This combination gives the advantage over schema control, querying and maintainace via alembic migrations.
+
+The steaming session metadata and data of object detection results are stored in two different tables `streaming_sessions` and `detections` linked by `session_uuid`.
+`streaming_sessions` stores the metadata like `year`, `month` and `day` along with unique `session_id`. This information is consumed by the partitioning and file name of streamed data.
+With this the frames stored either locally or in cloud and the detection results can be traced easily with `streaming_session` data.
