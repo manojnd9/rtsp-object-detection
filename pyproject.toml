@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "object_detection"
-version = "0.0.1"
+version = "0.0.2"
 description = "Detect objects via data stream using yolo object model"
 authors = ["Manoj Deshpande <manojnd9@gmail.com>"]
 readme = "README.md"
