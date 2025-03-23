@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, BackgroundTasks
 from starlette import status
 from pydantic import BaseModel, AnyUrl
 from typing import Optional
@@ -20,17 +20,22 @@ router = APIRouter(prefix="/stream", tags=["Streaming"])
 
 
 @router.post("/start", status_code=status.HTTP_200_OK)
-async def start_stream_process(stream_request: SteamRequestParams):
+async def start_stream_process(
+    stream_request: SteamRequestParams, background_tasks: BackgroundTasks
+):
     print(stream_request)
     check_stream(stream_url=str(stream_request.stream_url))
     detector = select_model()
 
     # stream session metadata
     stream_session = get_stream_session()
-    video_stream_process(
-        stream_url=str(stream_request.stream_url),
-        stream_session=stream_session,
-        object_detector=detector,
-        sampling_rate=stream_request.sampling_rate,
+
+    background_tasks.add_task(
+        video_stream_process,
+        str(stream_request.stream_url),
+        stream_session,
+        detector,
+        stream_request.sampling_rate,
     )
+
     return {"message": "stream started"}
