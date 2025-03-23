@@ -4,7 +4,7 @@ import os
 from object_detection.backend.config import MiscConfig, ModelSelector
 from object_detection.backend.object_models.model import ObjectDetector
 from object_detection.backend.rtsp.video_stream import video_stream_process
-from object_detection.backend.utils.utils import get_stream_session
+from object_detection.backend.utils.utils import get_stream_session, pre_stream_check
 from object_detection.backend.database.data_model import Base
 from object_detection.backend.database.data_engine import engine
 
@@ -14,6 +14,9 @@ def main():
     load_dotenv(dotenv_path="object_detection/backend/.env")
     stream_url = os.getenv("RTSP_STREAM_URL")
 
+    # Pre-Stream Connection Check
+    if not pre_stream_check(stream_url):
+        raise ConnectionError(f"Unable to connect to {stream_url}")
     # Load model info
     model = ModelSelector()
 

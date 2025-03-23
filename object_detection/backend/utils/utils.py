@@ -1,8 +1,11 @@
 from datetime import datetime, timezone
+import socket
+import time
 import cv2 as cv
 from pathlib import Path
 import os
 from uuid import uuid4
+from urllib.parse import urlparse
 
 from object_detection.backend.database.schema import StreamSession
 
@@ -46,3 +49,20 @@ def get_stream_session() -> StreamSession:
         day=int(f"{timestamp.strftime('%d')}"),
         session_id=uuid4(),
     )
+
+
+def pre_stream_check(stream_url: str, timeout: float = 5.0):
+    parsed_url = urlparse(stream_url)
+    host = parsed_url.hostname
+    port = parsed_url.port
+
+    start = time.time()
+
+    while time.time() - start < timeout:
+        try:
+            with socket.create_connection((host, port), timeout=timeout):
+                return True
+        except OSError:
+            print(f"Waiting for stream host: {host}")
+    print(f"Stream not available! Timeout: {timeout} sec")
+    return False
