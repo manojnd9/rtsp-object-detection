@@ -38,3 +38,6 @@ class StreamSession(BaseModel):
     month: int
     day: int
     session_id: UUID
+    stream_name: str
+    device_name: str
+    device_id: str

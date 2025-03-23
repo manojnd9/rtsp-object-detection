@@ -4,7 +4,7 @@ import os
 from object_detection.backend.config import MiscConfig
 from object_detection.backend.rtsp.video_stream import video_stream_process
 from object_detection.backend.utils.runtime import check_stream, select_model
-from object_detection.backend.utils.utils import get_stream_session
+from object_detection.backend.utils.utils import get_stream_session, StreamMetaInput
 from object_detection.backend.database.data_model import Base
 from object_detection.backend.database.data_engine import engine
 
@@ -23,7 +23,10 @@ def main():
     detector = select_model()
 
     # stream session metadata
-    stream_session = get_stream_session()
+    session_meta = StreamMetaInput(
+        device_name="dummy", device_id="dummy_1234", stream_name="local"
+    )
+    stream_session = get_stream_session(session_meta)
 
     misc_config = MiscConfig()
 

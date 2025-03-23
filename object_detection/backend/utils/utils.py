@@ -6,6 +6,8 @@ from pathlib import Path
 import os
 from uuid import uuid4
 from urllib.parse import urlparse
+from pydantic import BaseModel
+from typing import Optional
 
 from object_detection.backend.database.schema import StreamSession
 
@@ -36,7 +38,13 @@ def save_frame(
     return f_path
 
 
-def get_stream_session() -> StreamSession:
+class StreamMetaInput(BaseModel):
+    device_name: Optional[str]
+    device_id: Optional[str]
+    stream_name: Optional[str]
+
+
+def get_stream_session(session_input: StreamMetaInput) -> StreamSession:
     """
     Based on current timestamp and session schema
     generate and return session schema object.
@@ -48,6 +56,9 @@ def get_stream_session() -> StreamSession:
         month=int(f"{timestamp.strftime('%m')}"),
         day=int(f"{timestamp.strftime('%d')}"),
         session_id=uuid4(),
+        device_id=session_input.device_id or None,
+        device_name=session_input.device_name or None,
+        stream_name=session_input.stream_name or None,
     )
 
 

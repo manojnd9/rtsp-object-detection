@@ -16,6 +16,18 @@ class StrmSessions(Base):
     year: Mapped[int] = mapped_column(nullable=False)
     month: Mapped[int] = mapped_column(nullable=False)
     day: Mapped[int] = mapped_column(nullable=False)
+    stream_name: Mapped[str] = mapped_column(nullable=True)
+    device_name: Mapped[str] = mapped_column(nullable=True)
+    device_id: Mapped[str] = mapped_column(nullable=True)
+    detect_model_name: Mapped[str] = mapped_column(nullable=True)
+    detect_model_version: Mapped[str] = mapped_column(nullable=True)
+    stream_start: Mapped[datetime.datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
+    stream_end: Mapped[datetime.datetime] = mapped_column(
+        TIMESTAMP(timezone=True), nullable=True
+    )
+
     # A session with many detections
     detections: Mapped[list["Detections"]] = relationship(back_populates="session")
 

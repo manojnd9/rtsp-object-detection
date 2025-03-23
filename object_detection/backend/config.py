@@ -7,6 +7,7 @@ from ultralytics import YOLO
 class ModelSelector:
     model: type = YOLO
     path: str = "yolov8n.pt"
+    name_meta: str = "YOLO"
 
 
 @dataclass
