@@ -16,6 +16,10 @@ def main():
     # Load env
     load_dotenv(dotenv_path="object_detection/backend/.env")
     stream_url = os.getenv("RTSP_STREAM_URL")
+    if not stream_url:
+        raise ValueError(
+            "Provide RTSP_STREAM_URL in object_detection/backend/.env file!"
+        )
 
     if "rtsp" in stream_url:
         check_stream(stream_url)
