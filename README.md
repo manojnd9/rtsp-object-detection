@@ -74,7 +74,7 @@ Start the FastAPI app with following command. This runs uvicorn under the hood.
 make dev
 ```
 
-Open the `Swagger Documenation` in the browser at [http://127.0.0.1:8000/docs](!http://127.0.0.1:8000/docs) to access the following routes.
+Open the `Swagger Documentation` in the browser at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to access the following routes.
 
 ### Start Streaming
 
@@ -83,7 +83,7 @@ Open the `Swagger Documenation` in the browser at [http://127.0.0.1:8000/docs](!
 ```
 {
   "stream_url": "rtsp://host:port/stream",
-  "steam_name": "string",
+  "stream_name": "string",
   "device_name": "string", # Optional
   "device_id": "string", # Optional
   "sampling_rate": 30 # Default
@@ -136,7 +136,7 @@ Image above shows the architecture diagram for the current implementation of Rea
 ![database_schema](docs/images/database_schema.png)
 
 This represents the data model of the input streaming session and detection results. The detection results in this implementation shows some important parameters of detected results. However this is not limited to the defined model.
-With the help of `alembic` migrations, this schema, both tables can be exapanded based on the requirement, without damanging current data present in the database.
+With the help of `alembic` migrations, this schema, both tables can be expanded based on the requirement, without damanging current data present in the database.
 
 Every `streamed frame` is stored with following folder structure and filenaming:
 
@@ -183,16 +183,82 @@ data/streamed_data/
 - All these tests along with format check using `black` can be tested with `GitHub Actions` for every PR merge.
 - Upon merge, docker images can be built and published to codeartifacts.
 
-Future Enhancements
+## Future Enhancements
 
-Concurrent stream handling with background task manager
-Stream lifecycle management (pause/resume)
-Push saved frames to S3
-Model switching from API
-Dashboard with WebSocket-based live view
-GPU support for faster inference
+- Concurrent stream handling.
+- Stream lifecycle management (pause/resume)
+- Push saved frames to S3
+- Model switching from API
+- Dashboard with live view
+- GPU support for faster inference
 
-## System Design for scalability
+## System Design for Scalability
+
+![scaled_architecture](docs/images/scalable_architecture.png)
+
+This diagram represents the full cloud-based architecture for real-time object detection using RTSP video streams.
+
+Following explains the architecture from left to right in the above diagram.
+
+#### RTSP Streaming Devices
+
+- Devices like CC-TV cameras stream video over RTSP. However, the video stream is not processed until explicitly activated.
+- Triggering Stream Processing
+  - A client application sends a `http POST /stream/start` request with `rtsp url` and `metadata`. This request is routed through an `Application Load Balancer` to a `FastAPI` app deployed on `AWS ECS or EC2`.
+- Backend Session Handling
+  - FastAPI backend:
+    - Registers the stream session (session_id/uuid)
+    - Starts reading the RTSP stream using OpenCV’s VideoCapture
+    - Sends sampled frames to an Amazon Kinesis Stream
+  - Asynchronous Detection via Kinesis Workers
+    - Multiple YOLOv8 Detector Workers, subscribed to the Kinesis stream, pull frame messages, run object detection, and store the data.
+  - Raw frames in Amazon S3 Buckets
+  - Same schema explained in current implementation's architecture
+  - Detection metadata in Amazon RDS (PostgreSQL)
+    - DBs can be sharded and scaled based on the index. e.g. index 1-10000 in db_shard_1 and 10001-20000 in db_shard_2
+    - Only detection db can be sharded, since the data grows very fast, where as stream_sessions db can be made one global store.
+  - End-to-End Traceability
+    - Each detection result is linked to:
+      - stream session_id
+      - corresponding frame in S3 (frame_path)
+      - exact timestamp
+
+With this we can achieve:
+
+- Real-time responsiveness, with parallel detection
+  - Otherwise if frame detection + process happens in same loop, the incoming frames need to wait until the current frame is processed by the ai model.
+- Modularity, with decoupled processing.
+- Still have end-to-end traceability like current implementation for analytics or future retraining.
+
+#### Reason for decoupling OpenCV part and Model Process part
+
+- Above approach is from seperate server for each streaming. We could also use one server with multiple streaming as well, by adding threading functionality to current implementation.
+  But this would tightly couple the components and there will be issue with real time performance expectatation.
+- And by decoupling, the model workers can be configured with GPUs which boosts the processing performance of the object detection model.
+- This will allow to set stream frame pushing part to be with CPUs and only workers with GPUs, enabling to save the cost.
+
+## Maintainence, Monitoring & Health
+
+To maintain system visibility and performance tuning at scale, following can be done :
+
+- Datadog: Monitor stream rate, detection latency, worker throughput, and system resource usage.
+- AWS CloudWatch: Monitor Kinesis lag, ECS health, S3 throughput, and database metrics.
+- Alerting: In both Datadog and AWS, notifications can be configured to notify during events.
+- Also loguru can be configured in the backend which pushes every log to the cloud.
+
+## Deployment Strategy
+
+As discussed earlier...
+
+- Use Docker Compose for local development and testing of end-to-end flow.
+- Use GitHub Actions to run:
+  - type checks
+  - unit and integration tests via pytest
+  - Docker builds and push to codeartifacts
+- Deploy core components via AWS ECS Fargate:
+  - FastAPI backend
+    - Stream reader services
+    - YOLOv8 detection workers
 
 ## License
 
