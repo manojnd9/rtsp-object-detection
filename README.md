@@ -55,7 +55,7 @@ Executing following make command will:
 - generate and start the postgres container and exposes it to the localhost port 5432, which is mentioned in the `DATABASE_URL` mentioned above.
 
 ```
-make db_setup_and_initialise
+make db_setup
 ```
 
 The tables will be created upon starting the application.

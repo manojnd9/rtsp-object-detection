@@ -11,10 +11,7 @@ format_check:
 
 
 # Database set-up
-db_setup_and_initialise:
-	make db_image_compose
-
-db_image_compose:
+db_setup:
 	cd ${BACKEND_REPO} && docker-compose up -d
 
 db_down:
