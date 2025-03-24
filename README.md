@@ -2,14 +2,14 @@
 
 ## Project Description
 
-A real-time object detection system that consumes RTSP video streams, detects objects using a YOLO-based model, stores results, and exposes APIs via FastAPI for interaction and monitoring.
+A real-time object detection system that consumes RTSP video streams, detects objects using YOLO model, stores results, and exposes APIs via FastAPI for interaction and monitoring.
 
 ## Tech Stack
 
 - **Python 3.11**: Chosen due to compatibility with most up-to-date libraries and rich ecosystem for AI, helps for faster prototyping.
 - **OpenCV**: Widely used computer vision library for real-time video streaming and image processing.
-- **YOLOv8 (from Ultralytics)**: Pre-trained object detection model chosen for its balance of speed and accuracy. Supports CPU inference.
-- **PostgreSQL + SQLAlchemy**: Relational database to store structured detection metadata. Managed via Alembic for migrations.
+- **YOLOv8 (from Ultralytics)**: Pre-trained object detection model chosen for its balance of speed and accuracy.
+- **PostgreSQL + SQLAlchemy**: Relational database to store structured streaming and detection data. Managed via Alembic for migrations.
 - **FastAPI**: For exposing APIs to control the streaming and object detection lifecycle.
 
 ## Installation and Setup
@@ -33,7 +33,7 @@ cd real-time-object-detection
 
 Open in the editor of your choice (preferred VS Code)
 
-Create .env file under `object_detection/backend/` and store the `DATABASE_URL`
+Create `.env` file under `object_detection/backend/` and store the `DATABASE_URL`.
 
 For the production, environment variables can be set-up in the corresponding deployment platform.
 
@@ -48,13 +48,21 @@ Install dependencies defined in the `pyproject.toml`.
 poetry install
 ```
 
+Sometime above command might throw a warning about Python version, which happens when multiple versions being used in the same system.
+
+In that case, set up a pyenv shell with this and do `poetry install`
+
+```
+pyenv shell 3.11.0
+```
+
 ## 4. Setup Database
 
 NOTE: All the `make` commands mentioned below are in this [Makefile](Makefile) in root folder.
 
 Executing following make command will:
 
-- generate and start the postgres container and exposes it to the localhost port 5432, which is mentioned in the `DATABASE_URL` mentioned above.
+- generate and start the postgres container and exposes it to the localhost port 5432, which is mentioned in the `DATABASE_URL` above.
 
 ```
 make db_setup
@@ -98,16 +106,22 @@ Upon successful start of stream processing, this returns the `session_id` which 
 
 Note:
 
-- This starts the process in the background in order to not block the api to access other endpoints. Therefore, to stop the background proces, the stream has to be killed.
+- This starts the process in the background in order to not block the api to access other endpoints. Therefore, to stop the background proces, the stream has to be terminated.
 - For the future, the video processing functions will be called with `threading` and `process_stop` endpoint will then be added to stop the threads without having to stop the streaming source!
 - The real-time functionality + performance of the object detection/storage is always a trade-off. Depending on the server ability and model efficiency, either all streamed frames can be processed or
   every nth frame can be processed based on the defined `sampling_rate`.
+- Once the stream is being processed, the raw streamed frames are stored under `object_detection/backend/data` with the folder structure/partitioning which is planned to suit the production cloud storage e.g. `aws/s3` buckets for optimal extraction. And the detection results along with metadata of streaming session are stored in postgres tables `detections` and `stream_sessions` respectively.
+- The gathered data can be viewed using `pgAdmin4`. Make sure to connect the db running in the docker container as server in `pgAdmin`.
+
+### Health Check
 
 `GET /health` to check the health of the api endpoint.
 
+### Get Metadata of Latest Streaming Sessions
+
 `GET /session_data/sessions` to get the latest 10 streaming session metadata.
 
-These endpoints can be extended to `download` the `detection` results along with saved `frames` as `.zip` file for further use or training of another model.
+The endpoints can be extended to `download` the `detection` results along with saved `frames` as `.zip` file for further use or training of another model.
 
 ## 5.2 CLI: Run main.py in the Terminal
 
@@ -116,18 +130,17 @@ To start processing the streaming session.
 - Define the `RTSP_STREAM_URL` in `object_detection/backend/.env`
 
 ```
-RTSP_STREAM_URL = "rtsp://192.168.2.87:8080/h264_ulaw.sdp"
+e.g.
+RTSP_STREAM_URL = "rtsp://host:port/stream"
 ```
 
 - Execute main.py, which runs functions to `check the stream connection`, `selecting object detection model` and `processing and storing the raw and detection results`.
 
 ```
-python object_detection/backend/main.py
+poetry run python object_detection/backend/main.py
 ```
 
-Once the stream is being processed, the raw streamed frames are stored under `object_detection/backend/data` with the folder structure/partitioning which is planned to suit the production cloud storage e.g. `aws/s3` buckets for optimal extraction.
-
-To stop the process, end the streaming source or kill the process in terminal.
+To stop the process, end the streaming source or terminate the process in terminal.
 
 ## Architecture Diagram
 
@@ -135,12 +148,14 @@ To stop the process, end the streaming source or kill the process in terminal.
 
 Image above shows the architecture diagram for the current implementation of Real-Time Object Detection and Data Storage.
 
+The rationale and exaplanation to the system design follow after `Data Schema`.
+
 ## Data Schema
 
 ![database_schema](docs/images/database_schema.png)
 
 This represents the data model of the input streaming session and detection results. The detection results in this implementation shows some important parameters of detected results. However this is not limited to the defined model.
-With the help of `alembic` migrations, this schema, both tables can be expanded based on the requirement, without damanging current data present in the database.
+With the help of `alembic` migrations, both tables can be expanded based on the requirement, without damaging current data present in the database.
 
 Every `streamed frame` is stored with following folder structure and filenaming:
 
@@ -200,13 +215,13 @@ data/streamed_data/
 
 ![scaled_architecture](docs/images/scalable_architecture.png)
 
-This diagram represents the full cloud-based architecture for real-time object detection using RTSP video streams.
+This diagram represents the cloud-based architecture for real-time object detection using RTSP video streams.
 
 Following explains the architecture from left to right in the above diagram.
 
 #### RTSP Streaming Devices
 
-- Devices like CC-TV cameras stream video over RTSP. However, the video stream is not processed until explicitly activated.
+- Devices like CC-TV cameras, phones stream video over RTSP. However, the video stream is not processed until explicitly called upon.
 - Triggering Stream Processing
   - A client application sends a `http POST /stream/start` request with `rtsp url` and `metadata`. This request is routed through an `Application Load Balancer` to a `FastAPI` app deployed on `AWS ECS or EC2`.
 - Backend Session Handling
@@ -216,11 +231,11 @@ Following explains the architecture from left to right in the above diagram.
     - Sends sampled frames to an Amazon Kinesis Stream
   - Asynchronous Detection via Kinesis Workers
     - Multiple YOLOv8 Detector Workers, subscribed to the Kinesis stream, pull frame messages, run object detection, and store the data.
-  - Raw frames in Amazon S3 Buckets
-  - Same schema explained in current implementation's architecture
-  - Detection metadata in Amazon RDS (PostgreSQL)
-    - DBs can be sharded and scaled based on the index. e.g. index 1-10000 in db_shard_1 and 10001-20000 in db_shard_2
-    - Only detection db can be sharded, since the data grows very fast, where as stream_sessions db can be made one global store.
+      - Raw frames in Amazon S3 Buckets
+        - Same schema explained in current implementation's architecture can be followed.
+      - Detection metadata in Amazon RDS (PostgreSQL)
+        - DBs can be sharded and scaled based on the index. e.g. index 1-10000 in db_shard_1 and 10001-20000 in db_shard_2
+        - Only detection db can be sharded, since the data grows very fast, where as stream_sessions db can be made one global store.
   - End-to-End Traceability
     - Each detection result is linked to:
       - stream session_id
@@ -239,18 +254,18 @@ With this we can achieve:
 - Above approach is from seperate server for each streaming. We could also use one server with multiple streaming as well, by adding threading functionality to current implementation.
   But this would tightly couple the components and there will be issue with real time performance expectatation.
 - And by decoupling, the model workers can be configured with GPUs which boosts the processing performance of the object detection model.
-- This will allow to set stream frame pushing part to be with CPUs and only workers with GPUs, enabling to save the cost.
+- This will allow to set stream frame pushing part to be with CPUs and only detection workers with GPUs, allowing us to save the cost.
 
 ## Maintainence, Monitoring & Health
 
-To maintain system visibility and performance tuning at scale, following can be done :
+To maintain system's visibility and performance tuning at scale, following can be done :
 
 - Datadog: Monitor stream rate, detection latency, worker throughput, and system resource usage.
 - AWS CloudWatch: Monitor Kinesis lag, ECS health, S3 throughput, and database metrics.
 - Alerting: In both Datadog and AWS, notifications can be configured to notify during events.
 - Also loguru can be configured in the backend which pushes every log to the cloud.
 
-## Deployment Strategy
+## Testing and Deployment Strategy
 
 As discussed earlier...
 
@@ -258,11 +273,11 @@ As discussed earlier...
 - Use GitHub Actions to run:
   - type checks
   - unit and integration tests via pytest
-  - Docker builds and push to codeartifacts
+  - docker builds and push to codeartifacts
 - Deploy core components via AWS ECS Fargate:
   - FastAPI backend
     - Stream reader services
-    - YOLOv8 detection workers
+  - YOLOv8 detection with Kinesis workers
 
 ## License
 
