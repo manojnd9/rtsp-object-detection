@@ -50,6 +50,8 @@ poetry install
 
 ## 4. Setup Database
 
+NOTE: All the `make` commands mentioned below are in this [Makefile](Makefile) in root folder.
+
 Executing following make command will:
 
 - generate and start the postgres container and exposes it to the localhost port 5432, which is mentioned in the `DATABASE_URL` mentioned above.
@@ -68,11 +70,13 @@ When the rtsp streaming is started and the link to corresponding rtsp server is 
 
 This option enables the possibility to extend the object-detection implementation to be production ready!
 
-Start the FastAPI app with following command. This runs uvicorn under the hood.
+Start the `FastAPI` app with following command. This runs `uvicorn` via `poetry` under the hood. If you are already in the `poetry shell` you can directly run the `uvicorn` without `poetry run`.
 
 ```
 make dev
 ```
+
+For the first time, the app starting can take some time as it has to download the `yolo` model.
 
 Open the `Swagger Documentation` in the browser at [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) to access the following routes.
 

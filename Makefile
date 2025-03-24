@@ -20,4 +20,4 @@ db_down:
 
 # Start fastapi app
 dev:
-	uvicorn object_detection.backend.main_api:app --reload
+	poetry run uvicorn object_detection.backend.main_api:app --reload
