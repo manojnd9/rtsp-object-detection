@@ -1,6 +1,14 @@
 # Real-Time Object Detection with RTSP
 
-Detect objects in real time using RTSP (Real-Time Streaming Protocol) and object detection model.
+A real-time object detection system that consumes RTSP video streams, detects objects using a YOLO-based model, stores results, and exposes APIs via FastAPI for interaction and monitoring.
+
+## Tech Stack
+
+- **Python 3.11**: Chosen due to compatibility with most up-to-date libraries and rich ecosystem for AI, helps for faster prototyping.
+- **OpenCV**: Widely used computer vision library for real-time video streaming and image processing.
+- **YOLOv8 (from Ultralytics)**: Pre-trained object detection model chosen for its balance of speed and accuracy. Supports CPU inference.
+- **PostgreSQL + SQLAlchemy**: Relational database to store structured detection metadata. Managed via Alembic for migrations.
+- **FastAPI**: For exposing APIs to control the streaming and object detection lifecycle.
 
 ## Tech Stack Choices
 

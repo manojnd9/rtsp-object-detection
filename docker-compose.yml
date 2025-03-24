@@ -1,0 +1,28 @@
+version: "3.8"
+services:
+  postgres:
+    image: postgres
+    container_name: detection-pg-container-2
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: test1234!
+      POSTGRES_DB: ObjectDetectionDb
+    ports:
+      - "5432:5432"
+    restart: always
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: detection-backend
+    ports:
+      - "8080:8080"
+    env_file:
+      - object_detection/backend/.env
+    environment:
+      - PORT=8080
+    depends_on:
+      - postgres
+    restart: always
+# If data has to be stored after restart, mount the volume

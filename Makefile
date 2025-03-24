@@ -12,7 +12,11 @@ format_check:
 
 # Database set-up
 db:
-	cd ${BACKEND_REPO} && docker-compose up -d
+	docker-compose up -d
 
 db_down:
-	cd ${BACKEND_REPO} && docker-compose down
+	docker-compose down
+
+# Export requirements.txt
+requirements:
+	poetry export --without-hashes --format=requirements.txt --output requirements.txt

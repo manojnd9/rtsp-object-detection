@@ -83,11 +83,11 @@ def video_stream_process(
             # Store detection result into database
             store_object_detection_result(detection_data)
 
-        if viz:
-            cv.imshow("Frame", results[0].plot())
-            cv.waitKey(1)
-            if 0xFF == ord("q"):
-                break
+        # if viz:
+        #     cv.imshow("Frame", results[0].plot())
+        #     cv.waitKey(1)
+        #     if 0xFF == ord("q"):
+        #         break
 
     # Release video capture object
     cap.release()
@@ -95,4 +95,4 @@ def video_stream_process(
     # Store the stream end time
     mark_stream_end(session_id=stream_session.session_id)
     # Close all frames
-    cv.destroyAllWindows()
+    # cv.destroyAllWindows()

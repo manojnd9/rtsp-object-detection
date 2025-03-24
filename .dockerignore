@@ -1,0 +1,37 @@
+# Virtual environments and build artifacts
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Local database and env files
+*.db
+.env
+
+# Media files
+*.jpg
+*.png
+*.mov
+*.mp4
+*.sdp
+
+# Data folders (saved frames, etc.)
+object_detection/backend/data/
+object_detection/backend/__pycache__/
+object_detection/frontend/
+
+# Project-specific files and folders
+tests/
+.git/
+
+**/.env
+
+**/data/*
+*.jpg
+*.MOV
+*.mp4
+*.png
+
+
+**/.DS_Store
