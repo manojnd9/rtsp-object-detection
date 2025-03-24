@@ -11,8 +11,16 @@ format_check:
 
 
 # Database set-up
-db:
+db_setup_and_initialise:
+	make db_image_compose
+
+db_image_compose:
 	cd ${BACKEND_REPO} && docker-compose up -d
 
 db_down:
 	cd ${BACKEND_REPO} && docker-compose down
+
+
+# Start fastapi app
+dev:
+	uvicorn object_detection.backend.main_api:app --reload

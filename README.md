@@ -1,66 +1,199 @@
 # Real-Time Object Detection with RTSP
 
-Detect objects in real time using RTSP (Real-Time Streaming Protocol) and object detection model.
+## Project Description
 
-## Tech Stack Choices
+A real-time object detection system that consumes RTSP video streams, detects objects using a YOLO-based model, stores results, and exposes APIs via FastAPI for interaction and monitoring.
 
-1. Backend is built on Python 3.11 [older versions are generally not recommended and py>3.12 don't have much updates in the supporting libraries]
-2. OpenCV: Widely used computer vision library for video streaming and image processing. It is also fast and optimised for real-time applications.
-   2.1 With OpenCV video capture object, either the video stream or video file can be read -> processed and released.
-   2.2 For connecting actual real-time video, RTSP camera app can be used as RTSP server -> take its URL and input to the OpenCV cap object.
-3. RTSP Stream: With IP Webcam
-   Tested with Android’s IP Webcam app for stable RTSP streaming. iOS apps tested had unreliable H.264 encoding leading to decoding issues. IP Webcam allowed clean integration with OpenCV via RTSP.
-4. Choosing object detection model
-   - Due to real-time requirement, single stage detector is better. Amongst available models like YOLO (You Only Look Once), SSD (Single Stage Detector) and RetinaNet, YOLO is better as it is faster than others and has balance between speed and performance anc can be run on the CPU. And YOLO also has better community support. For skeleton implemenatation to get the framework running, YOLO is a best choice.
-   - In YOLO, choosing the pre-trained model size impacts the speed and accuracy with nano being smallest/fastest upto extra-large which is most-accurate/slowest.
+## Tech Stack
 
-## Object Model Config and Stream URL setting
+- **Python 3.11**: Chosen due to compatibility with most up-to-date libraries and rich ecosystem for AI, helps for faster prototyping.
+- **OpenCV**: Widely used computer vision library for real-time video streaming and image processing.
+- **YOLOv8 (from Ultralytics)**: Pre-trained object detection model chosen for its balance of speed and accuracy. Supports CPU inference.
+- **PostgreSQL + SQLAlchemy**: Relational database to store structured detection metadata. Managed via Alembic for migrations.
+- **FastAPI**: For exposing APIs to control the streaming and object detection lifecycle.
 
-For the security purpose, `RTSP_STREAM_URL` is defined in `.env` file and loaded in the `main.py`.
+## Installation and Setup
 
-Object model configuration can be added/modified in the `ModelSelector` dataclass and used in the `ObjectDetector` wrapper.
+## 1. Pre-Requisites
 
-## Data Schema
+```
+pyenv
+docker
+poetry
+```
 
-1. `StreamSesssion` \
-   Global session schema to help partion the way frames and detection results are stored.
-2. `BoundingBox` and `DetectionResult` \
-   Each detected object as a box has:
-   - `timestamp`: at which the object was detected
-   - `label`: name of of the object
-   - `confidence`: confidence of detected objected by the model
-   - `bbox`: bounding box coordinates
-   - `frame_path`: path where input frame is stored
-3. Storing streamed frames \
-   - Save the running frame along with the timestamp within file name
-     as jpg file. For now, the frames are stored in the local disk, for later it can be pushed to s3 buckets with proper partitioning.
-   - Year, Month, Day and Session_ID is used to partion the folders to
-     store the frames. It makes querying certain session data very fast.
+## 2. Clone the Repository
 
-## Database
+```
+git clone git@github.com:manojnd9/rtsp-object-detection.git
+cd real-time-object-detection
+```
 
-PostgreSQL along with SQLAlchemy is used to manage the database storing and database sessions. This combination gives the advantage over schema control, querying and maintainace via alembic migrations.
+## 3. Create and Configure .venv
 
-The steaming session metadata and data of object detection results are stored in two different tables `streaming_sessions` and `detections` linked by `session_uuid`.
-`streaming_sessions` stores the metadata like `year`, `month` and `day` along with unique `session_id`. This information is consumed by the partitioning and file name of streamed data.
-With this the frames stored either locally or in cloud and the detection results can be traced easily with `streaming_session` data.
+Open in the editor of your choice (preferred VS Code)
 
-# Stream start-up options
+Create .env file under `object_detection/backend/` and store the `DATABASE_URL`
+
+For the production, environment variables can be set-up in the corresponding deployment platform.
+
+```
+e.g.
+DATABASE_URL = "postgresql://user:password@localhost:5432/ObjectDetectionDb"
+```
+
+Install dependencies defined in the `pyproject.toml`.
+
+```
+poetry install
+```
+
+## 4. Setup Database
+
+Executing following make command will:
+
+- generate and start the postgres container and exposes it to the localhost port 5432, which is mentioned in the `DATABASE_URL` mentioned above.
+
+```
+make db_setup_and_initialise
+```
+
+The tables will be created upon starting the application.
+
+# 5. Execution Options
 
 When the rtsp streaming is started and the link to corresponding rtsp server is available, the video processing/object-detection functions can be triggered in two ways.
 
-## CLI: Run main.py in the terminal
-
-For local testing and development time, the `stream_url` can be set in the `.env` and main.py can be executed in the terminal.
-This runs some boilerplate functions to `check the stream connection`, `selecting and instantiaing the object detection model` and `object containing the stream session metadata`.
-These inputs are modular and are reused in another method of executing the real-time object detection.
-
-## API Endpoints
+## 5.1 API Endpoints
 
 This option enables the possibility to extend the object-detection implementation to be production ready!
 
-FastAPI app is set-up in the `object_detection/backend/main_api.py`. This contains different routes to `start` the streaming session, `health` checkup and can be extended to many routes with desired functionalities.
+Start the FastAPI app with following command. This runs uvicorn under the hood.
 
-To access and start the streaming and object detection in this way, the `FastAPI app` should be started with `uvicorn object_detection.backend.main_api:app --reload`.
+```
+make dev
+```
 
-This `app` also contains the `lifespan` function to execute `start-up` and `clean-up` functions when the app `starts` and `shuts down`.
+Open the `Swagger Documenation` in the browser at [http://127.0.0.1:8000/docs](!http://127.0.0.1:8000/docs) to access the following routes.
+
+### Start Streaming
+
+`POST /stream/start` takes following arguments and upon execution posts start real-time video stream processing in the backend.
+
+```
+{
+  "stream_url": "rtsp://host:port/stream",
+  "steam_name": "string",
+  "device_name": "string", # Optional
+  "device_id": "string", # Optional
+  "sampling_rate": 30 # Default
+}
+```
+
+Upon successful start of stream processing, this returns the `session_id` which is unique for the streaming session.
+
+Note:
+
+- This starts the process in the background in order to not block the api to access other endpoints. Therefore, to stop the background proces, the stream has to be killed.
+- For the future, the video processing functions will be called with `threading` and `process_stop` endpoint will then be added to stop the threads without having to stop the streaming source!
+- The real-time functionality + performance of the object detection/storage is always a trade-off. Depending on the server ability and model efficiency, either all streamed frames can be processed or
+  every nth frame can be processed based on the defined `sampling_rate`.
+
+`GET /health` to check the health of the api endpoint.
+
+`GET /session_data/sessions` to get the latest 10 streaming session metadata.
+
+These endpoints can be extended to `download` the `detection` results along with saved `frames` as `.zip` file for further use or training of another model.
+
+## 5.2 CLI: Run main.py in the Terminal
+
+To start processing the streaming session.
+
+- Define the `RTSP_STREAM_URL` in `object_detection/backend/.env`
+
+```
+RTSP_STREAM_URL = "rtsp://192.168.2.87:8080/h264_ulaw.sdp"
+```
+
+- Execute main.py, which runs functions to `check the stream connection`, `selecting object detection model` and `processing and storing the raw and detection results`.
+
+```
+python object_detection/backend/main.py
+```
+
+Once the stream is being processed, the raw streamed frames are stored under `object_detection/backend/data` with the folder structure/partitioning which is planned to suit the production cloud storage e.g. `aws/s3` buckets for optimal extraction.
+
+To stop the process, end the streaming source or kill the process in terminal.
+
+## Architecture Diagram
+
+![object_detection_architecture](docs/images/architecture_implemented.png)
+
+Image above shows the architecture diagram for the current implementation of Real-Time Object Detection and Data Storage.
+
+## Data Schema
+
+![database_schema](docs/images/database_schema.png)
+
+This represents the data model of the input streaming session and detection results. The detection results in this implementation shows some important parameters of detected results. However this is not limited to the defined model.
+With the help of `alembic` migrations, this schema, both tables can be exapanded based on the requirement, without damanging current data present in the database.
+
+Every `streamed frame` is stored with following folder structure and filenaming:
+
+```
+data/streamed_data/
+├── YYYY/
+│   └── MM/
+│       └── DD/
+│           └── session_id-<uuid>/
+│               └── frame-<timestamp>.jpg
+
+```
+
+## System Design Rationale
+
+### Object Detection Strategy
+
+- YOLOv8 (single stage detector) is chosen for real-time detection with flexible model sizes (nano to xlarge).
+- Supports CPU inference and has strong community support.
+- In YOLO, choosing the pre-trained model size impacts the speed and accuracy with nano being smallest/fastest upto extra-large which is most-accurate/slowest. For the prototype and since running on laptop, nano model is chosen.
+
+### RTSP Handling
+
+- OpenCV, a widely used computer vision library for real-time video streaming and image processing. Its method -> cv2.VideoCapture connects directly to the RTSP stream.
+- Frames are read, processed, and released in a loop. Additional sampling_rate (either in config.py when running locally or via API request parameter when running with FastAPI app) provided can help to make trade-off between speed and performance.
+- Android IP Webcam tested for reliable H.264 stream. Also a higher resolution camera can be bottleneck when streams are processed one after other.
+
+### Storage Strategy
+
+- Raw frames stored locally with timestamp and session-based folders.
+- Can be extended to S3 with structured partitions.
+- Streaming metadata and object detection results stored in PostgreSQL via SQLAlchemy models.
+
+### Modularity
+
+- ModelSelector: easily swap detection model.
+- ObjectDetector: core wrapper for processing logic.
+- Can be extended to handle multiple streams concurrently using background tasks.
+
+## Testing & CI/CD
+
+- For all the classes/functions/methods, unit tests can be added with `pytest`.
+- End-to-end integration test to test from streaming to processing/storing. This can be done with small video and expected results can be asserted to check the entire functionality.
+- All these tests along with format check using `black` can be tested with `GitHub Actions` for every PR merge.
+- Upon merge, docker images can be built and published to codeartifacts.
+
+Future Enhancements
+
+Concurrent stream handling with background task manager
+Stream lifecycle management (pause/resume)
+Push saved frames to S3
+Model switching from API
+Dashboard with WebSocket-based live view
+GPU support for faster inference
+
+## System Design for scalability
+
+## License
+
+This project is for the purpose of evaluation only.
