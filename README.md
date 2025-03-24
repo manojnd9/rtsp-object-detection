@@ -176,12 +176,12 @@ data/streamed_data/
 - ObjectDetector: core wrapper for processing logic.
 - Can be extended to handle multiple streams concurrently using background tasks.
 
-## Testing & CI/CD
+### Testing & CI/CD for Current Implementation
 
+- These are Todos
 - For all the classes/functions/methods, unit tests can be added with `pytest`.
 - End-to-end integration test to test from streaming to processing/storing. This can be done with small video and expected results can be asserted to check the entire functionality.
 - All these tests along with format check using `black` can be tested with `GitHub Actions` for every PR merge.
-- Upon merge, docker images can be built and published to codeartifacts.
 
 ## Future Enhancements
 
