@@ -50,3 +50,14 @@ def store_object_detection_result(detection: DetectionResult) -> None:
             raise ValueError("Invlaid detection data!")
         db.add(detect_row)
         db.commit()
+
+
+def mark_stream_end(session_id: str) -> None:
+    """Update stream_end field for the given session uuid in the stream_sessions table."""
+    with get_db_session() as db:
+        session = db.query(StrmSessions).filter_by(session_id=session_id).first()
+        if session:
+            session.stream_end = datetime.now(timezone.utc)
+            db.commit()
+        else:
+            print(f"No session found with session_id: {session_id}")

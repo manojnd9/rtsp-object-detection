@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
 
-from object_detection.backend.routes import stream_start, health
+from object_detection.backend.routes import stream_start, health, stream_data
 from object_detection.backend.database.data_model import Base
 from object_detection.backend.database.data_engine import engine
 
@@ -27,3 +27,4 @@ async def run_app():
 
 app.include_router(stream_start.router)
 app.include_router(health.router)
+app.include_router(stream_data.router)

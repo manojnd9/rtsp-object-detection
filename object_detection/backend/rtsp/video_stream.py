@@ -3,6 +3,7 @@ import cv2 as cv
 from ultralytics import YOLO
 
 from object_detection.backend.database.data_store import (
+    mark_stream_end,
     store_object_detection_result,
     store_stream_session,
 )
@@ -91,5 +92,7 @@ def video_stream_process(
     # Release video capture object
     cap.release()
 
+    # Store the stream end time
+    mark_stream_end(session_id=stream_session.session_id)
     # Close all frames
     cv.destroyAllWindows()

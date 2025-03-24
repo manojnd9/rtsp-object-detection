@@ -43,4 +43,4 @@ async def start_stream_process(
         stream_request.sampling_rate,
     )
 
-    return {"message": "stream started"}
+    return {"message": "stream started", "session_id": stream_session.session_id}
