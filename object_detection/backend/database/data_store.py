@@ -1,3 +1,6 @@
+from datetime import datetime, timezone
+
+from object_detection.backend.config import ModelSelector
 from object_detection.backend.database.data_model import Detections, StrmSessions
 from object_detection.backend.database.db_utils import get_db_session
 from object_detection.backend.database.schema import DetectionResult, StreamSession
@@ -13,6 +16,13 @@ def store_stream_session(session: StreamSession) -> None:
             year=session.year,
             month=session.month,
             day=session.day,
+            stream_name=session.stream_name,
+            device_name=session.device_name,
+            device_id=session.device_id,
+            detect_model_name=ModelSelector.name_meta,
+            detect_model_version=ModelSelector.path,
+            stream_start=datetime.now(timezone.utc),
+            stream_end=None,
         )
         if not session_row:
             raise ValueError("Invalid session data!")
@@ -40,3 +50,14 @@ def store_object_detection_result(detection: DetectionResult) -> None:
             raise ValueError("Invlaid detection data!")
         db.add(detect_row)
         db.commit()
+
+
+def mark_stream_end(session_id: str) -> None:
+    """Update stream_end field for the given session uuid in the stream_sessions table."""
+    with get_db_session() as db:
+        session = db.query(StrmSessions).filter_by(session_id=session_id).first()
+        if session:
+            session.stream_end = datetime.now(timezone.utc)
+            db.commit()
+        else:
+            print(f"No session found with session_id: {session_id}")

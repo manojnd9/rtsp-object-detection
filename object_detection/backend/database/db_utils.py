@@ -1,5 +1,4 @@
 from contextlib import contextmanager
-from sqlalchemy.orm.session import Session
 
 from object_detection.backend.database.data_engine import SessionLocal
 

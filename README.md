@@ -44,3 +44,23 @@ PostgreSQL along with SQLAlchemy is used to manage the database storing and data
 The steaming session metadata and data of object detection results are stored in two different tables `streaming_sessions` and `detections` linked by `session_uuid`.
 `streaming_sessions` stores the metadata like `year`, `month` and `day` along with unique `session_id`. This information is consumed by the partitioning and file name of streamed data.
 With this the frames stored either locally or in cloud and the detection results can be traced easily with `streaming_session` data.
+
+# Stream start-up options
+
+When the rtsp streaming is started and the link to corresponding rtsp server is available, the video processing/object-detection functions can be triggered in two ways.
+
+## CLI: Run main.py in the terminal
+
+For local testing and development time, the `stream_url` can be set in the `.env` and main.py can be executed in the terminal.
+This runs some boilerplate functions to `check the stream connection`, `selecting and instantiaing the object detection model` and `object containing the stream session metadata`.
+These inputs are modular and are reused in another method of executing the real-time object detection.
+
+## API Endpoints
+
+This option enables the possibility to extend the object-detection implementation to be production ready!
+
+FastAPI app is set-up in the `object_detection/backend/main_api.py`. This contains different routes to `start` the streaming session, `health` checkup and can be extended to many routes with desired functionalities.
+
+To access and start the streaming and object detection in this way, the `FastAPI app` should be started with `uvicorn object_detection.backend.main_api:app --reload`.
+
+This `app` also contains the `lifespan` function to execute `start-up` and `clean-up` functions when the app `starts` and `shuts down`.
