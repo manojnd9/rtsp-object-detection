@@ -281,4 +281,4 @@ As discussed earlier...
 
 ## License
 
-This project is for the purpose of evaluation only.
+This project is for the purpose of learning.
